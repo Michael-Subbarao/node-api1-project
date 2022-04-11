@@ -39,12 +39,57 @@ server.get('/api/users',(request, response)=>{
             response.status(500).json({ message: "There was an error while saving the user to the database" });
         });
 })
+
 server.get('/api/users/:id',(request, response)=>{
-    response.end('users');
+    let { id } = request.params;
+    users.findById(id)
+        .then((user)=>{
+            if(user == null){
+                response.status(404).json({ message: "The user with the specified ID does not exist" });
+                return;
+            } 
+            else {
+                response.json(user);
+            }
+        })
+        .catch(()=> {
+         response.status(500).json({ message: "There was an error while saving the user to the database" });
+        });
 })
-server.put('/api/users/:id',(request, response)=>{
-    response.end('users');
+
+server.put('/api/users/:id', async (request, response)=>{
+    let { id } = request.params;
+    try {
+        let body = request.body;
+        if(!body.name || !body.bio){
+            response.status(400).json({ message: "Please provide name and bio for the user" });
+            return;
+        }else {
+            let newUser = await users.update(id, body);
+            if(newUser == null) {
+                response.status(404).json({ message: "The user with the specified ID does not exist" });
+                return;
+            } else {
+                response.status(200).json(newUser);
+                return;
+            }
+        }
+    } catch(e) {
+        response.status(500).json({ message: "There was an error while saving the user to the database" });
+    }
 })
 server.delete('/api/users/:id',(request, response)=>{
-    response.end('users');
+    let { id } = request.params;
+    users.remove(id)
+        .then(user => {
+            if(user == null) {
+                response.status(404).json({ message: "The user with the specified ID does not exist" });
+                return;
+            }
+
+            response.status(200).json(user);
+        })
+        .catch(() => {
+            response.status(500).json({ message: "There was an error while saving the user to the database" });
+        });
 })
